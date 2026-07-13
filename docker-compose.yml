@@ -1,0 +1,10 @@
+name: mof-bandgap
+
+services:
+  app:
+    build:
+      context: .
+    image: mof-bandgap:latest
+    container_name: mof-bandgap
+    env_file: [.env]
+    volumes: [./data:/app/data]
