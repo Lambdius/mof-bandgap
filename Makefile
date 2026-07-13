@@ -1,4 +1,4 @@
-.PHONY: env sync lint lint-fix typecheck test up down build logs ps check
+.PHONY: env sync lint lint-fix typecheck test up down build logs ps check clean-db clean-minio clean-data
 
 # Infrastructure
 env:
@@ -13,6 +13,11 @@ logs:
 	docker compose logs -f
 ps:
 	docker compose ps
+clean-db:
+	docker compose exec postgres psql -U postgres -d mof_bandgap -c "TRUNCATE TABLE mof_structures"
+clean-minio:
+	docker compose exec minio sh -c 'mc alias set local http://localhost:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD" && mc rm --recursive --force local/mof-cif'
+clean: clean-db clean-minio
 
 # Development
 sync:
