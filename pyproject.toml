@@ -2,7 +2,7 @@
 name = "mof-bandgap"
 version = "0.0.1"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.12,<3.13"
 dependencies = [
     "pydantic-settings>=2.6",
     "playwright>=1.48,<1.60",
@@ -13,6 +13,12 @@ dependencies = [
     "sqlalchemy[asyncio]>=2.0",
     "asyncpg>=0.29",
     "minio>=7.2",
+    "numpy>=1.26",
+    "scikit-learn>=1.5",
+    "torch>=2.3",
+    "pymatgen>=2024.5",
+    "structuregraph-helpers>=0.0.9",
+    "rdkit>=2023.9",
 ]
 
 [project.scripts]
@@ -46,3 +52,19 @@ known-first-party = ["mof_bandgap"]
 python_version = "3.12"
 mypy_path = "src"
 strict = true
+# rdkit ships its own bundled .pyi stubs that fail to parse (verified: multiple
+# recent releases each crash mypy with a different stub syntax error, e.g.
+# "Non-default argument follows default argument" in rdchem.pyi). That's a bug
+# in rdkit's packaging, not our code, and no per-module mypy setting on rdkit
+# itself suppresses it (the crash happens while mypy resolves rdkit's own
+# bundled stubs, before any override applies). The only way around it is to
+# stop mypy from ever needing to open the two modules that import rdkit
+# directly: exclude them from being checked as primary targets, and mark them
+# "skip" so other modules that import their (typed) public functions don't
+# need to look inside either. This means linker.py/descriptors.py lose mypy
+# coverage until rdkit fixes its stubs upstream.
+exclude = "^src/mof_bandgap/train/(linker|descriptors)\\.py$"
+
+[[tool.mypy.overrides]]
+module = ["mof_bandgap.train.linker", "mof_bandgap.train.descriptors"]
+follow_imports = "skip"

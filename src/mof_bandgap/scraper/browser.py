@@ -1,3 +1,4 @@
+import logging
 import re
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -6,7 +7,14 @@ from typing import Self
 from browserforge.fingerprints import Screen
 from camoufox.async_api import AsyncCamoufox
 from playwright.async_api import Browser as PlaywrightBrowser
-from playwright.async_api import Locator, Page, Response
+from playwright.async_api import Dialog, Locator, Page, Response
+
+logger = logging.getLogger(__name__)
+
+
+async def _handle_dialog(dialog: Dialog) -> None:
+    logger.warning("[Browser] unexpected dialog type=%s message=%r", dialog.type, dialog.message)
+    await dialog.accept()
 
 
 class Browser:
@@ -38,6 +46,7 @@ class Browser:
             assert isinstance(browser, PlaywrightBrowser)
             context = await browser.new_context(accept_downloads=False, no_viewport=True)
             page = await context.new_page()
+            page.on("dialog", _handle_dialog)
             await page.goto(url)
             await page.wait_for_load_state("domcontentloaded", timeout=page_load_timeout_ms)
             await page.wait_for_load_state("load", timeout=page_load_timeout_ms)

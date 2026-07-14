@@ -1,10 +1,19 @@
 import uuid
 
-from mof_bandgap.infrastructure.database.models import MofStructure
+import numpy as np
+import numpy.typing as npt
+import torch
+
+from mof_bandgap.constants import CGCNN_MIN_STD, OXIDATION_STATE_PATTERN
+from mof_bandgap.infrastructure.database.models import Features, MofStructure
 from mof_bandgap.scraper.algorithms.base import ScrapeResult
 
 
 class Mapper:
+    @staticmethod
+    def normalize_cif(text: str) -> str:
+        return OXIDATION_STATE_PATTERN.sub(r"\2\1", text)
+
     @staticmethod
     def to_float(value: str | None) -> float | None:
         if not value:
@@ -40,4 +49,48 @@ class Mapper:
             dbc_down=Mapper.to_float(properties.get("DBC_Down")),
             metal_center=properties.get("Metal_Center") or None,
             linker=properties.get("Linker") or None,
+        )
+
+
+class FeatureMapper:
+    @staticmethod
+    def pack_fingerprint(fingerprint: list[float]) -> bytes:
+        return np.packbits(np.array(fingerprint, dtype=np.uint8)).tobytes()
+
+    @staticmethod
+    def unpack_fingerprint(data: bytes, n_bits: int) -> list[float]:
+        bits = np.unpackbits(np.frombuffer(data, dtype=np.uint8), count=n_bits)
+        return [float(bit) for bit in bits]
+
+    @staticmethod
+    def to_forest_matrix(features: list[Features]) -> npt.NDArray[np.float64]:
+        return np.array(
+            [
+                f.linker_fingerprint + f.metal_descriptors + f.metal2_descriptors + [f.has_interior_metal]
+                for f in features
+            ]
+        )
+
+    @staticmethod
+    def to_node_matrix(features: list[Features]) -> npt.NDArray[np.float64]:
+        return np.array([f.metal_descriptors for f in features])
+
+    @staticmethod
+    def to_edge_matrix(features: list[Features]) -> npt.NDArray[np.float64]:
+        return np.array([f.linker_descriptors + [f.has_interior_metal] + f.metal2_descriptors for f in features])
+
+    @staticmethod
+    def to_target(features: list[Features]) -> npt.NDArray[np.float64]:
+        return np.array([f.band_gap for f in features])
+
+    @staticmethod
+    def normalize(
+        train: npt.NDArray[np.float64], val: npt.NDArray[np.float64]
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        mean = train.mean(axis=0)
+        std = train.std(axis=0)
+        std[std < CGCNN_MIN_STD] = 1.0
+        return (
+            torch.tensor((train - mean) / std, dtype=torch.float32),
+            torch.tensor((val - mean) / std, dtype=torch.float32),
         )

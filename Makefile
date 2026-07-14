@@ -1,4 +1,4 @@
-.PHONY: env sync lint lint-fix typecheck test up down build logs ps check clean-db clean-minio clean-data
+.PHONY: env sync lint lint-fix typecheck test up down build logs ps check clean-db clean-minio clean train dev-infra dev
 
 # Infrastructure
 env:
@@ -18,6 +18,17 @@ clean-db:
 clean-minio:
 	docker compose exec minio sh -c 'mc alias set local http://localhost:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD" && mc rm --recursive --force local/mof-cif'
 clean: clean-db clean-minio
+train:
+	docker compose run --rm -e RUN_SCRAPER=false -e RUN_TRAINING=true app mof-bandgap
+dev-infra:
+	docker compose up -d postgres minio
+dev:
+	DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/mof_bandgap \
+	MINIO_ENDPOINT=localhost:9000 \
+	SCRAPER_HEADLESS=false \
+	DEV_MODE=true \
+	RUN_TRAINING=false \
+	uv run mof-bandgap
 
 # Development
 sync:

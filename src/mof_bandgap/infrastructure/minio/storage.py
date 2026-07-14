@@ -29,3 +29,16 @@ class Storage:
             length=len(data),
         )
         logger.info("[Storage] saved %s (%d bytes)", key, len(data))
+
+    async def load(self, key: str) -> bytes:
+        def _get() -> bytes:
+            response = self._client.get_object(self._bucket, key)
+            try:
+                return response.read()
+            finally:
+                response.close()
+                response.release_conn()
+
+        data = await asyncio.to_thread(_get)
+        logger.info("[Storage] loaded %s (%d bytes)", key, len(data))
+        return data

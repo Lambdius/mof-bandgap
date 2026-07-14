@@ -1,8 +1,6 @@
-import re
-
 from bs4 import BeautifulSoup, Tag
 
-_UNIT_SUFFIX = re.compile(r"\s*\([^)]*\)\s*$")
+from mof_bandgap.constants import UNIT_SUFFIX_PATTERN
 
 
 def parse_properties(html: str) -> dict[str, str] | None:
@@ -10,7 +8,9 @@ def parse_properties(html: str) -> dict[str, str] | None:
     if not isinstance(table, Tag):
         return None
 
-    headers = [_UNIT_SUFFIX.sub("", th.get_text(strip=True)).replace(" ", "_") for th in table.find_all("th")]
+    headers = [
+        UNIT_SUFFIX_PATTERN.sub("", th.get_text(strip=True)).replace(" ", "_") for th in table.find_all("th")
+    ]
 
     values = [td.get_text(strip=True) for td in table.find_all("td")]
     if not values:

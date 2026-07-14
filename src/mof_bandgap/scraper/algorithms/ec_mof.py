@@ -1,15 +1,15 @@
 import logging
 from collections.abc import AsyncIterator
 
-from mof_bandgap.scraper.algorithms.base import Algorithm, ScrapeResult
-from mof_bandgap.scraper.browser import Browser
-from mof_bandgap.scraper.constants import (
+from mof_bandgap.constants import (
     EXPECTED_SELECT_COUNT,
     HIDDEN_CLASS,
     LOAD_BUTTON_NAME,
     MOFSDB_URL_PATTERN,
     Field,
 )
+from mof_bandgap.scraper.algorithms.base import Algorithm, ResumePoint, ScrapeResult
+from mof_bandgap.scraper.browser import Browser
 from mof_bandgap.scraper.parser import parse_properties
 
 logger = logging.getLogger(__name__)
@@ -79,12 +79,14 @@ class EcMofAlgorithm(Algorithm):
             selections={"METAL": metal, "LINKER": linker, "GROUP": group, "METAL2": metal2, "MODEL": model},
         )
 
-    async def run(self) -> AsyncIterator[ScrapeResult]:
+    async def run(self, resume: ResumePoint | None = None) -> AsyncIterator[ScrapeResult]:
         metals = await self.field_options(Field.METAL)
         linkers = await self.field_options(Field.LINKER, by_label=True)
         models = await self.field_options(Field.MODEL)
         groups = await self.field_options(Field.GROUP)
         metal2s = await self.field_options(Field.METAL2)
+
+        skipping = resume is not None
 
         for metal in metals:
             await self.select(Field.METAL, metal)
@@ -96,6 +98,16 @@ class EcMofAlgorithm(Algorithm):
                     await self.select(Field.MODEL, model)
 
                     if not await self.is_field_visible(Field.GROUP):
+                        if skipping:
+                            if resume is not None and (metal, linker, model, None, None) == (
+                                resume.metal,
+                                resume.linker,
+                                resume.model,
+                                resume.group,
+                                resume.metal2,
+                            ):
+                                skipping = False
+                            continue
                         result = await self._try_submit(
                             metal=metal, linker=linker, model=model, group=None, metal2=None
                         )
@@ -107,6 +119,16 @@ class EcMofAlgorithm(Algorithm):
                         await self.select(Field.GROUP, group)
 
                         if not await self.is_field_visible(Field.METAL2):
+                            if skipping:
+                                if resume is not None and (metal, linker, model, group, None) == (
+                                    resume.metal,
+                                    resume.linker,
+                                    resume.model,
+                                    resume.group,
+                                    resume.metal2,
+                                ):
+                                    skipping = False
+                                continue
                             result = await self._try_submit(
                                 metal=metal, linker=linker, model=model, group=group, metal2=None
                             )
@@ -116,8 +138,23 @@ class EcMofAlgorithm(Algorithm):
 
                         for metal2 in metal2s:
                             await self.select(Field.METAL2, metal2)
+
+                            if skipping:
+                                if resume is not None and (metal, linker, model, group, metal2) == (
+                                    resume.metal,
+                                    resume.linker,
+                                    resume.model,
+                                    resume.group,
+                                    resume.metal2,
+                                ):
+                                    skipping = False
+                                continue
+
                             result = await self._try_submit(
                                 metal=metal, linker=linker, model=model, group=group, metal2=metal2
                             )
                             if result is not None:
                                 yield result
+
+        if skipping:
+            logger.warning("[Scrap] resume point %s was never reached — nothing was submitted", resume)
