@@ -3,6 +3,7 @@ from sklearn.metrics import mean_absolute_error, r2_score  # type: ignore[import
 from torch import nn, optim
 
 from mof_bandgap.constants import (
+    CGCNN_EARLY_STOPPING_PATIENCE,
     CGCNN_EPOCHS,
     CGCNN_HIDDEN_DIM,
     CGCNN_LEARNING_RATE,
@@ -61,12 +62,32 @@ class CGCNNModel:
         optimizer = optim.Adam(model.parameters(), lr=CGCNN_LEARNING_RATE, weight_decay=CGCNN_WEIGHT_DECAY)
         loss_fn = nn.MSELoss()
 
+        best_val_loss = float("inf")
+        best_state: dict[str, torch.Tensor] | None = None
+        epochs_without_improvement = 0
+
         for _ in range(CGCNN_EPOCHS):
             model.train()
             optimizer.zero_grad()
             loss = loss_fn(model(node_train, edge_train), y_train)
             loss.backward()
             optimizer.step()
+
+            model.eval()
+            with torch.no_grad():
+                val_loss = loss_fn(model(node_val, edge_val), y_val).item()
+
+            if val_loss < best_val_loss:
+                best_val_loss = val_loss
+                best_state = {key: value.clone() for key, value in model.state_dict().items()}
+                epochs_without_improvement = 0
+            else:
+                epochs_without_improvement += 1
+                if epochs_without_improvement >= CGCNN_EARLY_STOPPING_PATIENCE:
+                    break
+
+        if best_state is not None:
+            model.load_state_dict(best_state)
 
         model.eval()
         with torch.no_grad():

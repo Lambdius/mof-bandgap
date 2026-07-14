@@ -66,7 +66,12 @@ class FeatureMapper:
     def to_forest_matrix(features: list[Features]) -> npt.NDArray[np.float64]:
         return np.array(
             [
-                f.linker_fingerprint + f.metal_descriptors + f.metal2_descriptors + [f.has_interior_metal]
+                f.linker_fingerprint
+                + f.linker_descriptors
+                + f.metal_descriptors
+                + f.metal2_descriptors
+                + [f.has_interior_metal]
+                + f.structural_descriptors
                 for f in features
             ]
         )
@@ -77,7 +82,12 @@ class FeatureMapper:
 
     @staticmethod
     def to_edge_matrix(features: list[Features]) -> npt.NDArray[np.float64]:
-        return np.array([f.linker_descriptors + [f.has_interior_metal] + f.metal2_descriptors for f in features])
+        return np.array(
+            [
+                f.linker_descriptors + [f.has_interior_metal] + f.metal2_descriptors + f.structural_descriptors
+                for f in features
+            ]
+        )
 
     @staticmethod
     def to_target(features: list[Features]) -> npt.NDArray[np.float64]:

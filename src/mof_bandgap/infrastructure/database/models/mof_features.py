@@ -19,6 +19,7 @@ class Features:
     has_interior_metal: float
     linker_descriptors: list[float]
     linker_fingerprint: list[float]
+    structural_descriptors: list[float]
     band_gap: float
 
 
@@ -33,7 +34,7 @@ class MofFeatures(Base):
     linker_descriptors: Mapped[list[float]] = mapped_column(ARRAY(Float))
     linker_fingerprint: Mapped[bytes] = mapped_column(LargeBinary)
 
-    def to_features(self, name: str, band_gap: float) -> Features:
+    def to_features(self, name: str, band_gap: float, structural_descriptors: list[float]) -> Features:
         from mof_bandgap.mapper import FeatureMapper
 
         return Features(
@@ -43,6 +44,7 @@ class MofFeatures(Base):
             has_interior_metal=float(self.has_interior_metal),
             linker_descriptors=self.linker_descriptors,
             linker_fingerprint=FeatureMapper.unpack_fingerprint(self.linker_fingerprint, FINGERPRINT_BITS),
+            structural_descriptors=structural_descriptors,
             band_gap=band_gap,
         )
 

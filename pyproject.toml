@@ -27,6 +27,14 @@ mof-bandgap = "mof_bandgap.main:main"
 [dependency-groups]
 dev = ["ruff>=0.8", "mypy>=1.13", "pytest>=8.3", "types-beautifulsoup4>=4.12"]
 
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu" }]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

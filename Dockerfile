@@ -25,7 +25,8 @@ WORKDIR /app
 ENV PATH="/app/.venv/bin:$PATH"
 
 COPY --from=deps /app/.venv /app/.venv
-RUN playwright install-deps firefox && python -m camoufox fetch
+RUN --mount=type=cache,target=/root/.cache \
+    playwright install-deps firefox && python -m camoufox fetch
 
 COPY --from=builder /app/.venv /app/.venv
 COPY --from=builder /app/src /app/src
