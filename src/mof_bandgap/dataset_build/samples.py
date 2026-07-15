@@ -3,8 +3,8 @@ import logging
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
 
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select  # pyright: ignore[reportMissingImports]
+from sqlalchemy.ext.asyncio import AsyncSession  # pyright: ignore[reportMissingImports]
 
 from mof_bandgap.constants import DATASET_DOWNLOAD_BATCH_SIZE
 from mof_bandgap.infrastructure.database.models import MofStructure
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class Sample:
     structure: MofStructure
-    cif: bytes
+    cif:       bytes
 
 
 async def _load_sample(storage: Storage, structure: MofStructure) -> Sample:
@@ -24,7 +24,7 @@ async def _load_sample(storage: Storage, structure: MofStructure) -> Sample:
     return Sample(structure=structure, cif=cif)
 
 
-async def iter_dataset(session: AsyncSession, storage: Storage) -> AsyncIterator[Sample]:
+async def iter_samples(session: AsyncSession, storage: Storage) -> AsyncIterator[Sample]:
     stmt = (
         select(MofStructure)
         .where(MofStructure.band_gap.is_not(None), MofStructure.has_file.is_(True))
@@ -40,4 +40,4 @@ async def iter_dataset(session: AsyncSession, storage: Storage) -> AsyncIterator
             count += 1
             yield sample
 
-    logger.info("[Train] streamed %d samples with a known band gap and a stored cif file", count)
+    logger.info("[Dataset] streamed %d samples with a known band gap and a stored cif file", count)

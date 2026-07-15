@@ -1,9 +1,9 @@
-from typing import get_args
-
-import pytest
-from pydantic import ValidationError
-
+from pydantic           import ValidationError # pyright: ignore[reportMissingImports]
 from mof_bandgap.config import Settings
+from typing             import get_args
+
+import pytest # pyright: ignore[reportMissingImports]
+
 
 VALID_LOG_LEVEL = get_args(Settings.model_fields["log_level"].annotation)
 

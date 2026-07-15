@@ -4,10 +4,10 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Self
 
-from browserforge.fingerprints import Screen
-from camoufox.async_api import AsyncCamoufox
-from playwright.async_api import Browser as PlaywrightBrowser
-from playwright.async_api import Dialog, Locator, Page, Response
+from browserforge.fingerprints import Screen  # pyright: ignore[reportMissingImports]
+from camoufox.async_api import AsyncCamoufox  # pyright: ignore[reportMissingImports]
+from playwright.async_api import Browser as PlaywrightBrowser  # pyright: ignore[reportMissingImports]
+from playwright.async_api import Dialog, Locator, Page, Response  # pyright: ignore[reportMissingImports]
 
 logger = logging.getLogger(__name__)
 
@@ -33,12 +33,12 @@ class Browser:
         page_load_timeout_ms: int,
     ) -> AsyncIterator[Self]:
         async with AsyncCamoufox(  # type: ignore[no-untyped-call]
-            headless=headless,
-            screen=Screen(max_width=1280, max_height=720),
-            humanize=True,
-            block_webrtc=True,
-            locale=["en-US", "en"],
-            firefox_user_prefs={
+            headless           = headless,
+            screen             = Screen(max_width=1280, max_height=720),
+            humanize           = True,
+            block_webrtc       = True,
+            locale             = ["en-US", "en"],
+            firefox_user_prefs = {
                 "javascript.use_us_english_locale": True,
                 "network.trr.mode": 5,
             },

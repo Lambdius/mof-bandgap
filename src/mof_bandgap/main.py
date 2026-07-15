@@ -2,6 +2,7 @@ import asyncio
 import logging
 
 from mof_bandgap.config import Settings
+from mof_bandgap.dataset_build.pipeline import run as run_build_dataset
 from mof_bandgap.scraper.pipeline import run as run_scraper
 from mof_bandgap.train.pipeline import run as run_training
 
@@ -12,11 +13,14 @@ async def _run() -> None:
     settings = Settings()
     logging.basicConfig(level=settings.log_level, format="%(message)s")
 
-    if not settings.run_scraper and not settings.run_training:
-        raise RuntimeError("nothing to run: enable RUN_SCRAPER and/or RUN_TRAINING")
+    if not settings.run_scraper and not settings.run_build_dataset and not settings.run_training:
+        raise RuntimeError("nothing to run: enable RUN_SCRAPER, RUN_BUILD_DATASET, and/or RUN_TRAINING")
 
     if settings.run_scraper:
         await run_scraper(settings)
+
+    if settings.run_build_dataset:
+        await run_build_dataset(settings)
 
     if settings.run_training:
         await run_training(settings)

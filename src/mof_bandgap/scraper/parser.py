@@ -1,4 +1,4 @@
-from bs4 import BeautifulSoup, Tag
+from bs4 import BeautifulSoup, Tag  # pyright: ignore[reportMissingImports]
 
 from mof_bandgap.constants import UNIT_SUFFIX_PATTERN
 

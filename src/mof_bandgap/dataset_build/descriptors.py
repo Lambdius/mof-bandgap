@@ -1,6 +1,6 @@
-from pymatgen.core.periodic_table import Element
-from rdkit import Chem  # type: ignore[import-untyped]
-from rdkit.Chem import AllChem, Descriptors  # type: ignore[import-untyped]
+from pymatgen.core.periodic_table import Element  # pyright: ignore[reportMissingImports]
+from rdkit import Chem  # pyright: ignore[reportMissingImports]
+from rdkit.Chem import AllChem, Descriptors  # pyright: ignore[reportMissingImports]
 
 from mof_bandgap.constants import DEFAULT_ATOMIC_RADIUS, FINGERPRINT_BITS, FINGERPRINT_RADIUS
 

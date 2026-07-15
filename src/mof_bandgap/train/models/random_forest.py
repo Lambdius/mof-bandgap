@@ -15,7 +15,7 @@ class RandomForestModel:
         model.fit(FeatureMapper.to_forest_matrix(train), FeatureMapper.to_target(train))
 
         predictions = model.predict(FeatureMapper.to_forest_matrix(val))
-        target = FeatureMapper.to_target(val)
+        target      = FeatureMapper.to_target(val)
 
         return Metrics(
             mae=float(mean_absolute_error(target, predictions)), r2=float(r2_score(target, predictions))

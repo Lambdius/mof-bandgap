@@ -1,12 +1,12 @@
 import logging
 from typing import cast
 
-from pymatgen.core.periodic_table import Element
-from pymatgen.core.structure import Molecule, Structure
-from rdkit import Chem  # type: ignore[import-untyped]
-from rdkit.Chem import rdDetermineBonds  # type: ignore[import-untyped]
-from structuregraph_helpers.create import get_structure_graph  # type: ignore[import-untyped]
-from structuregraph_helpers.subgraph import get_subgraphs_as_molecules  # type: ignore[import-untyped]
+from pymatgen.core.periodic_table import Element  # pyright: ignore[reportMissingImports]
+from pymatgen.core.structure import Molecule, Structure  # pyright: ignore[reportMissingImports]
+from rdkit import Chem  # pyright: ignore[reportMissingImports]
+from rdkit.Chem import rdDetermineBonds  # pyright: ignore[reportMissingImports]
+from structuregraph_helpers.create import get_structure_graph  # pyright: ignore[reportMissingImports]
+from structuregraph_helpers.subgraph import get_subgraphs_as_molecules  # pyright: ignore[reportMissingImports]
 
 from mof_bandgap.constants import MIN_LINKER_ATOMS
 from mof_bandgap.mapper import Mapper
@@ -27,7 +27,7 @@ def extract_linker_molecule(cif_text: str, metal_symbols: set[str]) -> Molecule 
     try:
         structure = Structure.from_str(cif_text, fmt="cif")
     except Exception:
-        logger.warning("[Train] failed to parse cif", exc_info=True)
+        logger.warning("[Dataset] failed to parse cif", exc_info=True)
         return None
 
     present_symbols = {site.specie.symbol for site in structure}
@@ -37,27 +37,27 @@ def extract_linker_molecule(cif_text: str, metal_symbols: set[str]) -> Molecule 
     try:
         structure_no_metal.remove_species(list(species_to_remove))
     except Exception:
-        logger.warning("[Train] failed to strip metal species", exc_info=True)
+        logger.warning("[Dataset] failed to strip metal species", exc_info=True)
         return None
 
     if len(structure_no_metal) == 0:
-        logger.warning("[Train] structure is empty after removing metal species")
+        logger.warning("[Dataset] structure is empty after removing metal species")
         return None
 
     try:
         graph = get_structure_graph(structure_no_metal, method="vesta")
         molecules, *_ = get_subgraphs_as_molecules(graph, prune_long_edges=True)
     except Exception:
-        logger.warning("[Train] failed to build structure graph", exc_info=True)
+        logger.warning("[Dataset] failed to build structure graph", exc_info=True)
         return None
 
     if not molecules:
-        logger.warning("[Train] no disconnected fragments found")
+        logger.warning("[Dataset] no disconnected fragments found")
         return None
 
     linker = cast(Molecule, max(molecules, key=len))
     if len(linker) < MIN_LINKER_ATOMS:
-        logger.warning("[Train] largest fragment is too small to be a linker")
+        logger.warning("[Dataset] largest fragment is too small to be a linker")
         return None
 
     return linker
@@ -70,14 +70,14 @@ def molecule_to_smiles(molecule: Molecule) -> str | None:
 
     mol = Chem.MolFromXYZBlock(xyz_block)
     if mol is None:
-        logger.warning("[Train] rdkit failed to parse linker xyz block")
+        logger.warning("[Dataset] rdkit failed to parse linker xyz block")
         return None
 
     mol_conn = Chem.Mol(mol)
     try:
         rdDetermineBonds.DetermineBonds(mol_conn, charge=0)
     except Exception:
-        logger.warning("[Train] failed to determine bonds for linker", exc_info=True)
+        logger.warning("[Dataset] failed to determine bonds for linker", exc_info=True)
         return None
 
     smiles: str = Chem.MolToSmiles(mol_conn)

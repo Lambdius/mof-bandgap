@@ -1,7 +1,11 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import (  # pyright: ignore[reportMissingImports]
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 
 from mof_bandgap.infrastructure.database.base import Base
 

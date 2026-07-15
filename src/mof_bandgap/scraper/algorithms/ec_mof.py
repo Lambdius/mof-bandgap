@@ -74,16 +74,22 @@ class EcMofAlgorithm(Algorithm):
         name = response.url.split("q=", 1)[1]
         logger.info("[Scrap] loaded %s: %s", name, properties)
         return ScrapeResult(
-            name=name,
-            properties=properties,
-            selections={"METAL": metal, "LINKER": linker, "GROUP": group, "METAL2": metal2, "MODEL": model},
+            name       = name,
+            properties = properties,
+            selections = {
+                "METAL":  metal,
+                "LINKER": linker,
+                "GROUP":  group,
+                "METAL2": metal2,
+                "MODEL":  model
+            },
         )
 
     async def run(self, resume: ResumePoint | None = None) -> AsyncIterator[ScrapeResult]:
-        metals = await self.field_options(Field.METAL)
+        metals  = await self.field_options(Field.METAL)
         linkers = await self.field_options(Field.LINKER, by_label=True)
-        models = await self.field_options(Field.MODEL)
-        groups = await self.field_options(Field.GROUP)
+        models  = await self.field_options(Field.MODEL)
+        groups  = await self.field_options(Field.GROUP)
         metal2s = await self.field_options(Field.METAL2)
 
         skipping = resume is not None

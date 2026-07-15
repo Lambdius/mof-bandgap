@@ -5,17 +5,17 @@ from typing import Protocol
 
 @dataclass
 class ScrapeResult:
-    name: str
+    name:       str
     properties: dict[str, str]
     selections: dict[str, str | None]
 
 
 @dataclass
 class ResumePoint:
-    metal: str
+    metal:  str
     linker: str
-    model: str
-    group: str | None
+    model:  str
+    group:  str | None
     metal2: str | None
 
 

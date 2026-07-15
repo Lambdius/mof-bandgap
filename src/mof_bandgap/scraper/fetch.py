@@ -1,7 +1,7 @@
 import logging
 from http import HTTPStatus
 
-import httpx
+import httpx  # pyright: ignore[reportMissingImports]
 
 logger = logging.getLogger(__name__)
 
