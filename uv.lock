@@ -609,19 +609,28 @@ source = { editable = "." }
 dependencies = [
     { name = "alembic" },
     { name = "asyncpg" },
+    { name = "minio" },
+    { name = "pydantic-settings" },
+    { name = "sqlalchemy", extra = ["asyncio"] },
+]
+
+[package.optional-dependencies]
+dataset = [
+    { name = "numpy" },
+    { name = "pymatgen" },
+    { name = "rdkit" },
+    { name = "structuregraph-helpers" },
+]
+scraper = [
     { name = "beautifulsoup4" },
     { name = "browserforge" },
     { name = "camoufox" },
     { name = "httpx" },
-    { name = "minio" },
-    { name = "numpy" },
     { name = "playwright" },
-    { name = "pydantic-settings" },
-    { name = "pymatgen" },
-    { name = "rdkit" },
+]
+training = [
+    { name = "numpy" },
     { name = "scikit-learn" },
-    { name = "sqlalchemy", extra = ["asyncio"] },
-    { name = "structuregraph-helpers" },
     { name = "torch", version = "2.13.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin'" },
     { name = "torch", version = "2.13.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin'" },
 ]
@@ -638,21 +647,23 @@ dev = [
 requires-dist = [
     { name = "alembic", specifier = ">=1.14" },
     { name = "asyncpg", specifier = ">=0.29" },
-    { name = "beautifulsoup4", specifier = ">=4.12" },
-    { name = "browserforge", specifier = ">=1.2" },
-    { name = "camoufox", specifier = ">=0.4" },
-    { name = "httpx", specifier = ">=0.27" },
+    { name = "beautifulsoup4", marker = "extra == 'scraper'", specifier = ">=4.12" },
+    { name = "browserforge", marker = "extra == 'scraper'", specifier = ">=1.2" },
+    { name = "camoufox", marker = "extra == 'scraper'", specifier = ">=0.4" },
+    { name = "httpx", marker = "extra == 'scraper'", specifier = ">=0.27" },
     { name = "minio", specifier = ">=7.2" },
-    { name = "numpy", specifier = ">=1.26,<2" },
-    { name = "playwright", specifier = ">=1.48,<1.60" },
+    { name = "numpy", marker = "extra == 'dataset'", specifier = ">=1.26,<2" },
+    { name = "numpy", marker = "extra == 'training'", specifier = ">=1.26,<2" },
+    { name = "playwright", marker = "extra == 'scraper'", specifier = ">=1.48,<1.60" },
     { name = "pydantic-settings", specifier = ">=2.6" },
-    { name = "pymatgen", specifier = ">=2024.5" },
-    { name = "rdkit", specifier = ">=2023.9" },
-    { name = "scikit-learn", specifier = ">=1.5" },
+    { name = "pymatgen", marker = "extra == 'dataset'", specifier = ">=2024.5" },
+    { name = "rdkit", marker = "extra == 'dataset'", specifier = ">=2023.9" },
+    { name = "scikit-learn", marker = "extra == 'training'", specifier = ">=1.5" },
     { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0" },
-    { name = "structuregraph-helpers", specifier = ">=0.0.9" },
-    { name = "torch", specifier = ">=2.3", index = "https://download.pytorch.org/whl/cpu" },
+    { name = "structuregraph-helpers", marker = "extra == 'dataset'", specifier = ">=0.0.9" },
+    { name = "torch", marker = "extra == 'training'", specifier = ">=2.3", index = "https://download.pytorch.org/whl/cpu" },
 ]
+provides-extras = ["scraper", "dataset", "training"]
 
 [package.metadata.requires-dev]
 dev = [

@@ -1,4 +1,4 @@
-.PHONY: env sync lint typecheck test migrate migration migration-stamp up down build logs ps check clean-db clean-minio clean build-dataset train dev-infra dev
+.PHONY: env sync sync-scraper sync-dataset sync-training lint typecheck test migrate migration migration-stamp up down build logs ps check clean-db clean-minio clean build-dataset train dev-infra dev
 
 # Infrastructure
 env:
@@ -36,6 +36,12 @@ dev:
 # Development
 sync:
 	uv sync --all-extras --group dev
+sync-scraper:
+	uv sync --extra scraper --group dev
+sync-dataset:
+	uv sync --extra dataset --group dev
+sync-training:
+	uv sync --extra training --group dev
 lint:
 	uv run ruff check .
 typecheck:
