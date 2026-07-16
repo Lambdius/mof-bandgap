@@ -20,6 +20,9 @@
 | `uv run ruff check --fix . && uv run ruff format .`                               | `make lint-fix`  | Auto-fix and format.                              |
 | `uv run mypy src`                                                                 | `make typecheck` | Run mypy --strict on src.                         |
 | `uv run pytest`                                                                   | `make test`      | Run pytest.                                       |
+| `uv run alembic upgrade head`                                                     | `make migrate`   | Apply all pending database migrations.            |
+| `uv run alembic revision --autogenerate -m "..."`                                 | `make migration message="..."` | Generate a database migration.      |
+| `uv run alembic stamp 20260716_0001`                                              | `make migration-stamp` | Mark a legacy `create_all` schema as migrated. |
 | `make sync && make lint && make typecheck && make test`                           | `make check`     | Run the full verification chain.                  |
 
 </details>
