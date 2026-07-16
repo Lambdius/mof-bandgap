@@ -115,7 +115,7 @@ class DatasetBuilder:
                 yield features
 
         print()
-        logger.info("[Dataset] datasets: %d built, %d cached, %d skipped", self._built, self._cached, self._skipped)
+        logger.info("[Dataset] datasets: %d built, %d cached, %d skipped\n", self._built, self._cached, self._skipped)
 
     async def _load_cache(self) -> dict[uuid.UUID, MofDataset]:
         rows = (await self._session.execute(select(MofDataset))).scalars().all()

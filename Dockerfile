@@ -9,7 +9,7 @@ WORKDIR /app
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv sync --frozen --no-install-project --no-dev
+    uv sync --frozen --all-extras --no-install-project --no-dev
 
 FROM ${PYTHON_IMAGE} AS builder
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
@@ -18,7 +18,7 @@ WORKDIR /app
 
 COPY --from=deps /app/.venv /app/.venv
 COPY . .
-RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev
+RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --all-extras --no-dev
 
 FROM ${PYTHON_IMAGE} AS runner
 WORKDIR /app
@@ -30,5 +30,7 @@ RUN --mount=type=cache,target=/root/.cache \
 
 COPY --from=builder /app/.venv /app/.venv
 COPY --from=builder /app/src /app/src
+COPY --from=builder /app/alembic.ini /app/alembic.ini
+COPY --from=builder /app/migrations /app/migrations
 
-CMD ["mof-bandgap"]
+CMD ["sh", "-c", "alembic upgrade head && exec mof-bandgap"]

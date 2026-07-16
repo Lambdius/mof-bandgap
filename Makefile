@@ -1,4 +1,4 @@
-.PHONY: env sync lint typecheck test up down build logs ps check clean-db clean-minio clean build-dataset train dev-infra dev
+.PHONY: env sync sync-scraper sync-dataset sync-training lint typecheck test migrate migration migration-stamp up down build logs ps check clean-db clean-minio clean build-dataset train dev-infra dev
 
 # Infrastructure
 env:
@@ -9,6 +9,8 @@ down:
 	docker compose down
 build:
 	docker compose build
+logs:
+	docker compose logs -f
 restart: down up
 clean-db:
 	docker compose exec postgres psql -U postgres -d mof_bandgap -c "TRUNCATE TABLE mof_structures"
@@ -17,6 +19,12 @@ clean-minio:
 clean: clean-db clean-minio
 dev-infra:
 	docker compose up -d postgres minio
+migrate:
+	uv run alembic upgrade head
+migration:
+	uv run alembic revision --autogenerate -m "$(message)"
+migration-stamp:
+	uv run alembic stamp 20260716_0001
 dev:
 	DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/mof_bandgap \
 	MINIO_ENDPOINT=localhost:9000 \
@@ -28,6 +36,12 @@ dev:
 # Development
 sync:
 	uv sync --all-extras --group dev
+sync-scraper:
+	uv sync --extra scraper --group dev
+sync-dataset:
+	uv sync --extra dataset --group dev
+sync-training:
+	uv sync --extra training --group dev
 lint:
 	uv run ruff check .
 typecheck:
